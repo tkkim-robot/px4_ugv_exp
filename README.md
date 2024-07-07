@@ -20,7 +20,9 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
     1. Orin board needs to be connected through internet.
     2. Install the wifi/bluetooth module. In my case it was Intel 8xxxx module. But it was not detecting the wifi.
         
-        ![IMG_5089.jpg](https://github.com/tkkim-robot/px4_rover_exp/assets/40379815/e5ff6214-55b1-4524-b86c-d9411fa52a2c)
+        <p align="center">
+            <img width="300" alt="wifi" src="https://github.com/tkkim-robot/px4_rover_exp/assets/40379815/e5ff6214-55b1-4524-b86c-d9411fa52a2c">
+        </p>
         
     3. So connect the internet through any sources, and install the driver
         ```bash
@@ -82,7 +84,7 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
     - you need to unplug/plug the realsense camera whenever you re-run docker container
 8. Let’s add our own docker setup into the isaac-ros docker container. The series of commands setting and installing docker environments are all organized in `run_dev.sh` , and it will call `build_image_layers.sh` to build dockerfile one by one. 
     1. So, we will change a few things, to insert our dockerfile, and `run_dev.sh` will automatically build our dockerfile during it’s own instruction. 
-    2. First, configure `.isaac_ros_common-config`. During the realsene setup, we already created and configured this file. You can find this file in `isaac_ros_common/scripts` directory. It was previously `ros2_humble.realsense` . Now, change it to:
+    2. First, configure [`.isaac_ros_common-config`](https://github.com/tkkim-robot/px4_rover_exp/blob/main/docker/.isaac_ros_common-config). During the realsene setup, we already created and configured this file. You can find this file in `isaac_ros_common/scripts` directory. It was previously `ros2_humble.realsense` . Now, change it to:
         
         ```bash
         CONFIG_IMAGE_KEY=ros2_humble.realsense.dasc_isaac
@@ -99,10 +101,27 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
         
     3. Second, place the `Dockerfile.dasc_isaac` in the directory `isaac_ros_common/docker`. It includes building PX4 and VICON related libraies.
         
-        [Dockerfile.dasc_isaac](https://prod-files-secure.s3.us-west-2.amazonaws.com/eb9ea54a-87e6-4b91-be09-8aaed8a339c0/fef38a63-ae23-4118-933c-ba2427c2fc1d/Dockerfile.dasc_isaac)
+        [Dockerfile.dasc_isaac](https://github.com/tkkim-robot/px4_rover_exp/blob/main/docker/Dockerfile.dasc_isaac)
         
     4. Third, replace the `workspace-entrypoint.sh` in directory `isaac_ros_common/docker/scripts` . It includes install rosdep and source ros setup.bash files. It prevents the docker container from installing rosdep for NvBlox every time.
         
-        [workspace-entrypoint.sh](https://prod-files-secure.s3.us-west-2.amazonaws.com/eb9ea54a-87e6-4b91-be09-8aaed8a339c0/ef0e7f35-a858-4f19-9ef8-2d4da72f394a/workspace-entrypoint.sh)
+        [workspace-entrypoint.sh](https://github.com/tkkim-robot/px4_rover_exp/blob/main/docker/workspace-entrypoint.sh)
         
     5. Lastly, remove the `--rm` argument in `run_dev.sh` ’s last line (docker run arguments). Otherwise, the container will be removed whenever we exit the container.
+
+9. Before running `run_dev.sh` again, we need to clone our px4-related ros2 source packages from git.
+    1. In `workspaces/` directory:
+        
+        ```bash
+        git clone https://github.com/tkkim-robot/px4_rover_exp
+        cd px4_rover_exp
+        git submodule update --init --recursive
+        colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+        ```
+        
+    2. After build the ros2 packages, run `run_dev.sh` .
+    3. Try running a demo NvBlox demo again
+        
+        ```bash
+        ROS_DOMAIN_ID={YOUR_ID} ros2 launch nvblox_examples_bringup realsense_example.launch.py
+        ```
