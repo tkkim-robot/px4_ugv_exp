@@ -125,3 +125,6 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
         ```bash
         ROS_DOMAIN_ID={YOUR_ID} ros2 launch nvblox_examples_bringup realsense_example.launch.py
         ```
+
+10. In the docker, give r/w access to USB1 (which is px4 board)
+    - `sudo chmod 777 /dev/ttyUSB1`
