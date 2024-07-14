@@ -21,8 +21,8 @@ colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --package
 echo "source /workspaces/isaac_ros-dev/install/setup.bash" >> ~/.bashrc
 source /workspaces/isaac_ros-dev/install/setup.bash
 
-echo "source /workspaces/px4_ugv_exp/colcon_ws/install/setup.bash" >> ~/.bashrc
-source /workspaces/px4_ugv_exp/colcon_ws/install/setup.bash
+echo "source /workspaces/colcon_ws/install/setup.bash" >> ~/.bashrc
+source /workspaces/colcon_ws/install/setup.bash
 
 cd /workspaces
 # Restart udev daemon

@@ -107,13 +107,14 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
         
         [workspace-entrypoint.sh](https://github.com/tkkim-robot/px4_rover_exp/blob/main/docker/workspace-entrypoint.sh)
         
-    5. Lastly, remove the `--rm` argument in `run_dev.sh` ’s last line (docker run arguments). Otherwise, the container will be removed whenever we exit the container. Then, add this line as an extra arguments in the last CLI in `run_Dev.sh`:
+    5. Lastly, remove the `--rm` argument in `run_dev.sh` ’s last line (docker run arguments). Otherwise, the container will be removed whenever we exit the container. Then, add this line as an extra arguments in the last CLI in `run_Dev.sh`. Also change the workdir for convenience:
 
         ```bash
         docker run - it \
         (...)
         -v /home/ubuntu/workspaces/px4_ugv_exp/colcon_ws:/workspaces/colcon_ws \
         (...)
+        --workdir /workspaces \
         ```
 
 9. Before running `run_dev.sh` again, we need to clone our px4-related ros2 source packages from git.
