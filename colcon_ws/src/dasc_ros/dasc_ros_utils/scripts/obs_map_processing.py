@@ -8,16 +8,17 @@ import time
 import cv2
 # from sklearn.cluster import DBSCAN
 from math import ceil
-from std_msgs.msg import String
+from std_msgs.msg import Float32MultiArray
 
 class ObsMapProcNode(Node):
     def __init__(self):
         super().__init__('obs_map_processor')
-        #self.publisher = self.create_publisher(TrajectorySetpoint, '/px4_1/fmu/in/trajectory_setpoint', 10)
-        self.subscription = self.create_subscription(DistanceMapSlice,'/nvblox_node/map_slice',self.nvblox_map_callback,QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
-        self.publisher = self.create_publisher(String,'/obstacle_circles',10)  # Added publisher initialization for String
+        self.subscriber_map_slice = self.create_subscription(DistanceMapSlice, '/nvblox_node/static_map_slice', self.nvblox_map_callback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
+        self.publisher_obs = self.create_publisher(Float32MultiArray, '/obstacle_circles', 10)  # Added publisher initialization for String
+        self.obs_msg = Float32MultiArray()
         # self.nan_number = 1000.0
-        self.epsilon=0.2
+        self.epsilon = 0.1
+        print("Asdf")
     
     # Function to find clusters of white pixels and their minimum enclosing circles
     def find_obstacle_clusters(self, image, resolution, max_rad=1):
@@ -38,13 +39,13 @@ class ObsMapProcNode(Node):
             obs_circles.append((int(x),int(y), radius))
         return np.array(obs_circles, dtype=float)
 
-    def cvt_pixel_to_global(self,obs_px,obs_py,map_origin_px,map_origin_py,resolution):
-        delta_px=obs_px-map_origin_px
+    def cvt_pixel_to_global(self, obs_px, obs_py, map_origin_px, map_origin_py, resolution):
+        delta_px = obs_px - map_origin_px
         # print("del ",type(delta_px))
-        delta_py=obs_py-map_origin_py
-        delta_x=delta_px*resolution
-        delta_y=-1*delta_py*resolution
-        global_x,global_y=delta_x,delta_y # since origin is always (0,0)
+        delta_py = obs_py-map_origin_py
+        delta_x = delta_px * resolution
+        delta_y = - delta_py * resolution
+        global_x, global_y = delta_x, delta_y # since origin is always (0,0)
         # print("global ",type(global_x))
         # print(global_x,global_y)
         return float(global_x),float(global_y)
@@ -60,8 +61,9 @@ class ObsMapProcNode(Node):
         origin_px = msg.origin.x
         origin_py = msg.origin.y
 
+        # map slice is an ESDF
         map_slice = np.array(map_slice).reshape((height, width)) # 2D
-        print("Origin: ",origin_px," ,",origin_py)
+        # print("Origin: ",origin_px," ,",origin_py)
         map_slice_vis = cv2.cvtColor( map_slice.copy(), cv2.COLOR_GRAY2BGR)
 
         # known values
@@ -72,8 +74,11 @@ class ObsMapProcNode(Node):
         obs_map[map_slice < self.epsilon] = 255 # 1 is obstacle contour
         obs_map = obs_map.astype(np.uint8)
 
+        # Add obstacles to map_slice_vis in blue color
+        map_slice_vis[map_slice < self.epsilon] = [255, 0, 0]  # Blue color in BGR
+
         # remove noise
-        kernel = np.ones((8, 8), np.uint8) 
+        kernel = np.ones((3, 3), np.uint8) 
         obs_map = cv2.erode(obs_map, kernel, iterations=1) 
         obs_map = cv2.dilate(obs_map, kernel, iterations=1) 
 
@@ -81,14 +86,12 @@ class ObsMapProcNode(Node):
         obs_circles = self.find_obstacle_clusters(obs_map, resolution)
 
         obs_global_frame = []
-        for circle in obs_circles:
+        for i, circle in enumerate(obs_circles):
             px = circle[0]
             py = circle[1]
             radius = circle[2]
             # Draw the circle on the image
-            cv2.circle(map_slice_vis, (int(px),int(py)), radius, (0, 0, 255), 2)
-            # Print px, py, radius of each circle
-            print(f"Circle {i + 1}: Center = {int(px), int(py)}, Radius = {radius}")
+            cv2.circle(map_slice_vis, (int(px),int(py)), int(radius), (0, 0, 255), 2)
 
             # convert origin in pixel to global (fix axis)
             map_origin_px = -origin_px / resolution
@@ -97,29 +100,34 @@ class ObsMapProcNode(Node):
             # convert to meter scale
             global_x, global_y = self.cvt_pixel_to_global(px, py, map_origin_px, map_origin_py, resolution)
             radius *= resolution
+
+            #print("Circle {:d}: Center = {:.2f}, {:.2f}, Radius = {:.2f}".format(i, global_x, global_y, radius))
             obs_global_frame.append([global_x, global_y, radius])
 
+        # Show the image with circles
+        
+        cv2.imwrite("/workspaces/colcon_ws/obstacle_slice.png", map_slice_vis)
+        cv2.imwrite("/workspaces/colcon_ws/obs_map.png", obs_map)
+
+        if len(obs_global_frame) == 0:
+            self.obs_msg = Float32MultiArray()
+            self.publisher_obs.publish(self.obs_msg)
+            return False
 
         
         # Removing bigger circles
-        rad_col = circles[:, 2]
+        obs_global_frame = np.array(obs_global_frame)
+        rad_col = obs_global_frame[:, 2]
         mask = rad_col <= 1
-        circles = circles[mask]
+        obs_global_frame = obs_global_frame[mask]
         #Sorting by 2-norm
-        sqrt_sum_squares = np.sqrt(circles[:, 0]**2 + circles[:, 1]**2)
+        sqrt_sum_squares = np.sqrt(obs_global_frame[:, 0]**2 + obs_global_frame[:, 1]**2)
         sorted_indices = np.argsort(sqrt_sum_squares)
-        circles = circles[sorted_indices]
-        obs_info_str=str(circles)
-        else:
-            obs_info_str=""
-        print("Data string: ",obs_info_str)
+        obs_global_frame = obs_global_frame[sorted_indices]
 
-        # Show the image with circles
-        cv2.imwrite("/workspaces/colcon_ws/obstacle_slice.png", image_with_circles)
-        # Publish circles information as String
-        circles_msg = String()
-        circles_msg.data = obs_info_str
-        self.publisher.publish(circles_msg)
+        # Publish obs_global_frame information as String
+        self.obs_msg.data = obs_global_frame.flatten().tolist()
+        self.publisher_obs.publish(self.obs_msg)
 
 
 def main(args=None):
