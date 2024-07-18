@@ -14,7 +14,7 @@ class ObsMapProcNode(Node):
     def __init__(self):
         super().__init__('obs_map_processor')
         self.subscriber_map_slice = self.create_subscription(DistanceMapSlice, '/nvblox_node/static_map_slice', self.nvblox_map_callback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
-        self.publisher_obs = self.create_publisher(Float32MultiArray, '/obstacle_circles', 10)  # Added publisher initialization for String
+        self.publisher_obs = self.create_publisher(Float32MultiArray, '/control/obstacle_circles', 10)  # Added publisher initialization for String
         self.obs_msg = Float32MultiArray()
         # self.nan_number = 1000.0
         self.epsilon = 0.1
