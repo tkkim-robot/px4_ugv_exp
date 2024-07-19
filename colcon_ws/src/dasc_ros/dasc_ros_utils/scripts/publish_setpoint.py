@@ -60,7 +60,7 @@ class SetpointAssignerNode(Node):
             v_l = 0.5 * (self.acc_x - 0.5 * self.L * self.yaw_rate)
             v_r = 0.5 * (self.acc_x + 0.5 * self.L * self.yaw_rate)
             print("Left vel is ", -v_l," and right vel is ", v_r)
-            self.msg.cmd = [v_r, -v_l, 0.0,0.0]
+            self.msg.cmd = [-v_l, v_r, 0.0,0.0]
             self.publisher.publish(self.msg)
             self.get_logger().info('Publishing setpoint')
             print(diff)
