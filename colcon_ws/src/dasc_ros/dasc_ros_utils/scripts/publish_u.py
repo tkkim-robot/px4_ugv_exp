@@ -28,16 +28,19 @@ class SetpointAssignerNode(Node):
 
         # to store previous vel_x of the robot
         self.vel_longitudinal = 0.0
-        self.max_vel = 0.8 # spec of motor
+        self.max_vel = 1.0 # spec of motor
+        self.min_vel = 0.02
 
-        self.timer = self.create_timer(0.1, self.timer_callback)
+        self.timer = self.create_timer(0.05, self.timer_callback)
 
     def ctrl_vel_callback(self, msg):
         self.control_flag = True
 
         self.acc_x = msg.data[0] # desired
         self.yaw_rate = msg.data[1] # desired
-        self.get_logger().info(f'Received control inputs - acc_x: {self.acc_x}, yaw_rate: {self.yaw_rate}')
+        if self.acc_x == 0.0 and self.yaw_rate == 0.0:
+            self.control_flag = False
+        #self.get_logger().info(f'Received control inputs - acc_x: {self.acc_x}, yaw_rate: {self.yaw_rate}')
 
     def timer_callback(self):
         if self.control_flag:
@@ -45,21 +48,23 @@ class SetpointAssignerNode(Node):
             dt = self.current_time - self.start_time
             self.msg.raw_mode = True
 
-            
-
             self.vel_longitudinal += self.acc_x * dt
-            self.vel_longitudinal = np.clip(self.vel_longitudinal, -self.max_vel, self.max_vel)
+            self.vel_longitudinal = np.clip(self.vel_longitudinal, 0.0, self.max_vel)
 
-            v_l = self.vel_longitudinal - self.yaw_rate * self.L / 2
-            v_r = self.vel_longitudinal + self.yaw_rate * self.L / 2
+            v_l = self.vel_longitudinal + self.yaw_rate * self.L / 2
+            v_r = self.vel_longitudinal - self.yaw_rate * self.L / 2
+            # if absolute value is smaller than 0.2, then set it to 0.2 with the sign
+            if abs(v_l) < self.min_vel:
+                v_l = self.min_vel if v_l > 0 else -self.min_vel
+            if abs(v_r) < self.min_vel:
+                v_r = self.min_vel if v_r > 0 else -self.min_vel
         else:
             v_l = 0.0
             v_r = 0.0
 
-        print("Left vel is ", v_l, " and right vel is ", -v_r)
-        self.msg.cmd = [v_l, -v_r, 0.0, 0.0]
+        print("Wheel vel: ", [v_l, v_r])
+        self.msg.cmd = [v_l, -v_r, 0.0, 0.0] # right motor is flipped
         self.publisher.publish(self.msg)
-        self.get_logger().info('Publishing setpoint')
         # print(dt)
         self.start_time = self.current_time
 
