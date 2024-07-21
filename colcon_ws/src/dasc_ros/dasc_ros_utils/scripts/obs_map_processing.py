@@ -18,6 +18,7 @@ class ObsMapProcNode(Node):
         self.obs_msg = Float32MultiArray()
         # self.nan_number = 1000.0
         self.epsilon = 0.1
+        self.obs_padding = 0.05
         print("Asdf")
     
     # Function to find clusters of white pixels and their minimum enclosing circles
@@ -44,7 +45,7 @@ class ObsMapProcNode(Node):
         # print("del ",type(delta_px))
         delta_py = obs_py-map_origin_py
         delta_x = delta_px * resolution
-        delta_y = - delta_py * resolution
+        delta_y = delta_py * resolution
         global_x, global_y = delta_x, delta_y # since origin is always (0,0)
         # print("global ",type(global_x))
         # print(global_x,global_y)
@@ -100,6 +101,7 @@ class ObsMapProcNode(Node):
             # convert to meter scale
             global_x, global_y = self.cvt_pixel_to_global(px, py, map_origin_px, map_origin_py, resolution)
             radius *= resolution
+            radius += self.obs_padding
 
             #print("Circle {:d}: Center = {:.2f}, {:.2f}, Radius = {:.2f}".format(i, global_x, global_y, radius))
             obs_global_frame.append([global_x, global_y, radius])
