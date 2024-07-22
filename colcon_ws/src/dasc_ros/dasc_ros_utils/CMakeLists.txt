@@ -62,8 +62,15 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
   scripts/obs_map_processing.py
   scripts/publish_setpoint.py
+  scripts/publish_u.py
+  scripts/cbf_tracking/publish_tracking_node.py
   DESTINATION lib/${PROJECT_NAME}
   )
+
+install(DIRECTORY
+	launch
+	DESTINATION share/${PROJECT_NAME}
+	)
 
 
 ament_package()

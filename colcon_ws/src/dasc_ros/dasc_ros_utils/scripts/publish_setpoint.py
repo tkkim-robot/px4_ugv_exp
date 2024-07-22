@@ -34,22 +34,22 @@ class SetpointAssignerNode(Node):
 
         while True:
             key = input("Enter command (w/a/s/d to move, any other key to stop): ").strip().lower()
-            if key=='w':
-                print("front")
+            if key=='s':
+                print("back")
                 self.acc_x = 0.5
                 self.yaw_rate = 0
             elif key=='a':
                 print("left")
                 self.acc_x = 0
-                self.yaw_rate = 1.0
-            elif key=='s':
-                print("back")
+                self.yaw_rate = 3.0
+            elif key=='w':
+                print("front")
                 self.acc_x = -0.5
                 self.yaw_rate = 0
             elif key=='d':
                 print("right")
                 self.acc_x = 0
-                self.yaw_rate = -1.0
+                self.yaw_rate = -3.0
             else:
                 print("stop")
                 self.acc_x = 0
@@ -60,7 +60,7 @@ class SetpointAssignerNode(Node):
             v_l = 0.5 * (self.acc_x - 0.5 * self.L * self.yaw_rate)
             v_r = 0.5 * (self.acc_x + 0.5 * self.L * self.yaw_rate)
             print("Left vel is ", -v_l," and right vel is ", v_r)
-            self.msg.cmd = [v_r, -v_l, 0.0,0.0]
+            self.msg.cmd = [-v_l, v_r, 0.0,0.0]
             self.publisher.publish(self.msg)
             self.get_logger().info('Publishing setpoint')
             print(diff)

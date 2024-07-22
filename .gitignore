@@ -6,3 +6,5 @@ colcon_ws/install/
 colcon_ws/log/
 
 *.png
+*.csv
+*.bag
