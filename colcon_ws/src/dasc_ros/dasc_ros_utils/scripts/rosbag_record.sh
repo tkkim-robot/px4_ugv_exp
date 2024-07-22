@@ -1,0 +1,1 @@
+ROS_DOMAIN_ID=4 ros2 bag record -o "240721_rrt_2" /control/obstacle_circles /visual_slam/tracking/odometry /px4_1/fmu/in/trajectory_setpoint /nvblox_node/static_map_slice /camera/color/image_raw/compressed /ctrl_vel /nvblox_node/mesh /nvblox_node/static_esdf_pointcloud
