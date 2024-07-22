@@ -24,7 +24,7 @@ class SetpointAssignerNode(Node):
         self.yaw_rate = 0  # Yaw rate in rad/sec ; +ve moves left, -ve moves right
         self.start_time = time.time()
         self.current_time = self.start_time
-        self.L = 0.3302  # Wheel base in m
+        self.L = 0.55 #0.3302  # Wheel base in m
 
         # to store previous vel_x of the robot
         self.vel_longitudinal = 0.0
@@ -45,11 +45,16 @@ class SetpointAssignerNode(Node):
     def timer_callback(self):
         if self.control_flag:
             self.current_time = time.time()
-            dt = self.current_time - self.start_time
+            dt = 0.05
             self.msg.raw_mode = True
 
             self.vel_longitudinal += self.acc_x * dt
+            print("Acc: ", self.acc_x)
+            print("dt: ", dt)
+            print(self.vel_longitudinal)
+
             self.vel_longitudinal = np.clip(self.vel_longitudinal, 0.0, self.max_vel)
+            print("after clip : ", self.vel_longitudinal)
 
             v_l = self.vel_longitudinal + self.yaw_rate * self.L / 2
             v_r = self.vel_longitudinal - self.yaw_rate * self.L / 2
