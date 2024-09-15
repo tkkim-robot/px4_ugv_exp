@@ -74,7 +74,7 @@ class SetpointAssignerNode(Node):
         # self.get_logger().info('%f, %f' % (msg.x, msg.y))
         received_x.append(msg.x)
         received_y.append(msg.y)
-        # print("%f, %f" %(msg.x,msg.y))
+        print("X and Y is %f, %f" %(msg.x,msg.y))
 
 
 
