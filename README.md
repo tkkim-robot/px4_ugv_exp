@@ -146,3 +146,42 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
 
 10. In the docker, give r/w access to USB1 (which is px4 board)
     - `sudo chmod 777 /dev/ttyUSB1`
+
+
+### How to Run Experiments
+
+1. Trun on the VICON.
+    - Turn two VICON computers and one switch on.
+    - On system tab, reboot the red cameras 
+    - On object tab, de-select "auto enable" and click "track".
+    - Press 'alt' and drag markers of interset, and type the name (default: px4_1) and done. 
+    - Right click 'px4_1' on object tab, click "save object" and make it "shared". 
+2. Turn on the rover with Orin and charged battery, put on markers on the plate (to be asymmetric).
+3. Place the indicator to the battery (left sided), and change the beep threshold to 3.70. (11.1v is the lowest voltage to stop, it's charged up to 12.x v.)
+4. SSH into the Orin with VSCode.
+5. Setup ground station with random laptop.
+    - ``` cd hardik/rover_groundstation_ros2_jumpstart```
+    - ``` xhost + ```
+    - ``` docker compose up -d ```
+    - ``` docker exec -it rover_groundstation_ros2_jumpstart-gs-1 bash```
+    - ``` (in the docker) ROS_DOMAIN_ID=4 ros2 launch ground_station_launch  gs.launch.py ```
+
+6. Setup Orin with SSH in VSCODE
+    - ``` docker start isaac-(...) ```
+    - ``` docker exec -it isaac-(...) bash```
+    - ``` (in the docker) cd colcon_ws && source install/setup.bash```
+    - ``` sudo chmod 777 /dev/ttyUSB1 ```
+    - ``` ROS_DOMAIN_ID=4 ros2 launch all_launch px4.launch.py ```
+    - Then, the RVIZ in groundstation turns green to "VALID"
+
+7. Now, run scripts
+    - The extra repos and folders are placed in 'px4_ugv_exp/colcon_ws/src/dasc_ros/dasc_ros_utils/scripts/', and it is mounted to the docker.
+    - Now, running your own scripts that publish px4 topic, it will run the rover.
+    - ``` ROS_DOMAIN_ID=4 ros2 run dasc_lab_utils publish_u.py```
+        - it will convert the ros2 ctrl_vel to left/right wheel velocity into px4.
+    - ```ROS_DOMAIN_ID=4 ros2 run dasc_lab_utils publish_tracking_node.py```
+        - customize your file and run like this.
+
+8. To set (0,0) velocity to both wheels:
+    - (very beginning) In RVIZ, click "raw mode", make sure both motors are 0.0, click "publish", then click "arm". 
+    - When you "disarm", click "publish", "arm", deselect "publish", then run my program again. 
