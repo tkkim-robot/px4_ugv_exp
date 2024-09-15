@@ -28,7 +28,7 @@ class SetpointAssignerNode(Node):
 
         # to store previous vel_x of the robot
         self.vel_longitudinal = 0.0
-        self.max_vel = 1.0 # spec of motor
+        self.max_vel = 0.8 # spec of motor
         self.min_vel = 0.02
 
         self.timer = self.create_timer(0.05, self.timer_callback)
@@ -50,20 +50,22 @@ class SetpointAssignerNode(Node):
 
             self.vel_longitudinal += self.acc_x * dt
             print("Acc: ", self.acc_x)
+            print("Yaw: ", self.yaw_rate)
             print("dt: ", dt)
-            print(self.vel_longitudinal)
+            print("Long vel before clip: ",self.vel_longitudinal)
 
             self.vel_longitudinal = np.clip(self.vel_longitudinal, 0.0, self.max_vel)
-            print("after clip : ", self.vel_longitudinal)
+            print("Long vel after clip : ", self.vel_longitudinal)
 
-            v_l = self.vel_longitudinal + self.yaw_rate * self.L / 2
-            v_r = self.vel_longitudinal - self.yaw_rate * self.L / 2
+            v_l = self.vel_longitudinal - self.yaw_rate * self.L / 2
+            v_r = self.vel_longitudinal + self.yaw_rate * self.L / 2
             # if absolute value is smaller than 0.2, then set it to 0.2 with the sign
             if abs(v_l) < self.min_vel:
                 v_l = self.min_vel if v_l > 0 else -self.min_vel
             if abs(v_r) < self.min_vel:
                 v_r = self.min_vel if v_r > 0 else -self.min_vel
         else:
+            self.msg.raw_mode = True
             v_l = 0.0
             v_r = 0.0
 
