@@ -150,7 +150,7 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
 
 ### How to Run Experiments
 
-1. Trun on the VICON.
+1. Turn on the VICON.
     - Turn two VICON computers and one switch on.
     - On system tab, reboot the red cameras 
     - On object tab, de-select "auto enable" and click "track".
@@ -171,15 +171,22 @@ Environmental setup for rovers using PX4, ros2 humble, and VICON MoCap
     - ``` docker exec -it isaac-(...) bash```
     - ``` (in the docker) cd colcon_ws && source install/setup.bash```
     - ``` sudo chmod 777 /dev/ttyUSB1 ```
-    - ``` ROS_DOMAIN_ID=4 ros2 launch all_launch px4.launch.py ```
+    - ``` ROS_DOMAIN_ID=7 ros2 launch all_launch px4.launch.py ```
     - Then, the RVIZ in groundstation turns green to "VALID"
+
+### Things to check for the px4
+    1. Check the px4's MAV_SYS_ID and the DDS_ID is set correctly (via QGroundControl)
+    2. Set these settings correctly in files located in `all_launch/config/` and `all_launch/launch/`. Also, set the ROS_DOMAIN_ID as is the DDS_ID (can be typed manually, or set it in docker_config.yaml)
+    3. Due to the grounding issue (two devices powered independently should be share the same ground), connect the jetson board with the same power as the px4. Otherwise, they will not commnunicate each other. 
+    4. `UdpEndpoint alpha` in `all_launch/config/px4/mavlink-router.conf` should be the ip address of the ground station.
+    5. In `px4.launch.py`, `run_vicon` flag should be `True` if you are using it. The `robot name` also should be the same as `MAV_SYS_ID`. 
 
 7. Now, run scripts
     - The extra repos and folders are placed in 'px4_ugv_exp/colcon_ws/src/dasc_ros/dasc_ros_utils/scripts/', and it is mounted to the docker.
     - Now, running your own scripts that publish px4 topic, it will run the rover.
-    - ``` ROS_DOMAIN_ID=4 ros2 run dasc_lab_utils publish_u.py```
+    - ``` ROS_DOMAIN_ID=7 ros2 run dasc_lab_utils publish_u.py```
         - it will convert the ros2 ctrl_vel to left/right wheel velocity into px4.
-    - ```ROS_DOMAIN_ID=4 ros2 run dasc_lab_utils publish_tracking_node.py```
+    - ```ROS_DOMAIN_ID=7 ros2 run dasc_lab_utils publish_tracking_node.py```
         - customize your file and run like this.
 
 8. To set (0,0) velocity to both wheels:
