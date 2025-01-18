@@ -63,6 +63,8 @@ install(PROGRAMS
   scripts/obs_map_processing.py
   scripts/publish_setpoint.py
   scripts/publish_u.py
+  scripts/cesdf_slice_vis.py
+  scripts/joystick_publisher.py
   scripts/cbf_tracking/publish_tracking_node.py
   DESTINATION lib/${PROJECT_NAME}
   )
