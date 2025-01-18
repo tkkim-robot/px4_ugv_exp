@@ -1,9 +1,9 @@
 ---
 vicon_bridge:
         ros__parameters:
-                publish_specific_segment: False 
-                target_subject_name: "px4_10"
-                target_segment_name: "px4_10"
+                publish_specific_segment: False
+                target_subject_name: "px4_7"
+                target_segment_name: "px4_7"
                 world_frame_id: "world"
                 tf_namespace: "vicon"
                 host_name: "192.168.1.115:801"

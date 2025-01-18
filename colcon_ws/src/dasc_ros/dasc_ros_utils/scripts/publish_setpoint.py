@@ -27,38 +27,38 @@ class SetpointAssignerNode(Node):
         self.subscription = self.create_subscription(VehicleLocalPosition,'/px4_1/fmu/out/vehicle_local_position',self.listener_callback,QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
 
         self.msg = TrajectorySetpoint()
-        self.acc_x=0.0 # Linear acceleration in m/s^2
-        self.yaw_rate= 0 # Yaw rate in rad/sec ; +ve moves left, -ve moves right
-        self.start_time=time.time()
-        self.L=0.3302 # Wheel base in m
+        self.vel_x = 0.0 # Linear acceleration in m/s^2
+        self.yaw_rate = 0 # Yaw rate in rad/sec ; +ve moves left, -ve moves right
+        self.start_time = time.time()
+        self.L = 0.3302 # Wheel base in m
 
         while True:
             key = input("Enter command (w/a/s/d to move, any other key to stop): ").strip().lower()
             if key=='s':
                 print("back")
-                self.acc_x = 0.5
+                self.vel_x = 0.5
                 self.yaw_rate = 0
             elif key=='a':
                 print("left")
-                self.acc_x = 0
+                self.vel_x = 0
                 self.yaw_rate = 3.0
             elif key=='w':
                 print("front")
-                self.acc_x = -0.5
+                self.vel_x = -0.5
                 self.yaw_rate = 0
             elif key=='d':
                 print("right")
-                self.acc_x = 0
+                self.vel_x = 0
                 self.yaw_rate = -3.0
             else:
                 print("stop")
-                self.acc_x = 0
+                self.vel_x = 0
                 self.yaw_rate = 0
             self.current_time=time.time()
             diff=self.current_time-self.start_time
             self.msg.raw_mode=True
-            v_l = 0.5 * (self.acc_x - 0.5 * self.L * self.yaw_rate)
-            v_r = 0.5 * (self.acc_x + 0.5 * self.L * self.yaw_rate)
+            v_l = 0.5 * (self.vel_x - 0.5 * self.L * self.yaw_rate)
+            v_r = 0.5 * (self.vel_x + 0.5 * self.L * self.yaw_rate)
             print("Left vel is ", -v_l," and right vel is ", v_r)
             self.msg.cmd = [-v_l, v_r, 0.0,0.0]
             self.publisher.publish(self.msg)

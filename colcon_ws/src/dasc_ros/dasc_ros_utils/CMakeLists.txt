@@ -13,6 +13,7 @@ find_package(rclpy REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(dasc_msgs REQUIRED)
 find_package(px4_msgs REQUIRED)
+find_package(nvblox_msgs REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2 REQUIRED)
@@ -61,11 +62,11 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
   scripts/obs_map_processing.py
+  scripts/cesdf_slice_vis.py
   scripts/publish_setpoint.py
   scripts/publish_u.py
-  scripts/cesdf_slice_vis.py
   scripts/joystick_publisher.py
-  scripts/cbf_tracking/publish_tracking_node.py
+  # scripts/cbf_tracking/publish_tracking_node.py
   DESTINATION lib/${PROJECT_NAME}
   )
 
